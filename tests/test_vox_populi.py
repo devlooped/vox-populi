@@ -175,9 +175,11 @@ class VoxPopuliTests(unittest.TestCase):
 
         table = vox_populi.render_cli_table(data)
 
-        self.assertIn("UNPOP %", table)
+        self.assertIn("UNPOP", table)
         self.assertIn("MKT YES", table)
-        self.assertLess(table.find("MKT YES"), table.find("POP %"))
+        self.assertLess(table.find("MKT YES"), table.find("POP"))
+        self.assertNotIn("YES %", table)
+        self.assertNotIn("NO %", table)
         self.assertIn("100.0%", table)
 
 

@@ -308,8 +308,8 @@ def render_cli_table(data: Dict[str, Any]) -> str:
         ),
         "",
         (
-            f"{'RANK':<5} | {'OUTCOME':<22} | {'MKT YES':>7} | {'POP %':>7} | "
-            f"{'VOTES':>7} | {'YES %':>6} | {'UNPOP %':>8} | {'VOTES':>7} | {'NO %':>6}"
+            f"{'RANK':<5} | {'OUTCOME':<22} | {'MKT YES':>7} | {'POP':>7} | "
+            f"{'VOTES':>7} | {'YES':>6} | {'UNPOP':>8} | {'VOTES':>7} | {'NO':>6}"
         ),
         "-" * 101,
     ]
