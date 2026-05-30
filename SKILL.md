@@ -105,6 +105,7 @@ The script prints the path to a JSON file with this top-level shape:
       "no_price": 52.5,
       "popular_pct": 66.7,
       "yes_pct": 82.1,
+      "unpopular_pct": 13.1,
       "no_pct": 19.6
     }
   ],
@@ -128,6 +129,7 @@ Each `outcomes[]` item contains:
 - `yes_voters` / `no_voters`: unique qualifying wallets per side
 - `yes_price` / `no_price`: current market prices in percent
 - `popular_pct`: share of total qualifying voters attributed to that outcome
+- `unpopular_pct`: share of total qualifying voters casting a No vote for that outcome
 - `yes_pct` / `no_pct`: split within that outcome's voter set
 
 `popular_pct` values can sum to more than **100%** because one wallet can qualify in multiple outcomes.
@@ -143,5 +145,6 @@ Columns:
 - `POP %`
 - `VOTERS`
 - `YES %`
+- `UNPOP %`
 - `NO %`
 - `MKT YES`

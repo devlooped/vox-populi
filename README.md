@@ -68,10 +68,10 @@ an agent can respond with something like:
 EVENT: SpaceX IPO in 2026?
 FILTER: Position size $10 - $100 USD | Total qualifying voters: 1,284
 
-RANK  | OUTCOME                |   POP % |  VOTERS |  YES % |   NO %
---------------------------------------------------------------------
-1     | Yes                    |   61.4% |     788 |   73.2% |  28.0%
-2     | No                     |   46.8% |     601 |   39.3% |  63.9%
+RANK  | OUTCOME                |   POP % |  VOTERS |  YES % | UNPOP % |   NO %
+-----------------------------------------------------------------------------
+1     | Yes                    |   61.4% |     788 |   73.2% |   26.6% |  28.0%
+2     | No                     |   46.8% |     601 |   39.3% |   30.0% |  63.9%
 
 Last updated: 2026-05-30 03:20:11
 ```
@@ -85,6 +85,7 @@ When invoked, the skill:
 - resolves the requested Polymarket event from a slug or URL
 - filters wallets by current position size, defaulting to **$10-$100**
 - counts unique qualifying wallets instead of dollar exposure
+- in Yes and No independently, keeps only each wallet's largest current position
 - reports **popular support** plus the **Yes/No split** for each outcome
 
 This makes it useful for prompts about **retail sentiment**, **crowd conviction**, **prediction markets**, **whale filtering**, and **people-vs-money divergence**.
