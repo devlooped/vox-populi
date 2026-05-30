@@ -83,7 +83,7 @@ The exact market title, outcomes, and counts depend on live Polymarket data.
 When invoked, the skill:
 
 - resolves the requested Polymarket event from a slug or URL
-- filters wallets by current position size, defaulting to **$10-$100**
+- filters wallets by current position size, defaulting to **unbounded** when no limits are provided
 - counts unique qualifying wallets instead of dollar exposure
 - in Yes and No independently, keeps only each wallet's largest current position
 - reports **popular support** plus the **Yes/No split** for each outcome
@@ -98,6 +98,8 @@ These tend to work well:
 - `use vox populi on <polymarket url>`
 - `run vox populi with min $25 max $250`
 - `vox populi <market name> 25-250`
+- `vox populi <market name> 5+`
+- `vox populi <market name> <500`
 - `compare vox populi support with the market odds`
 - `summarize retail sentiment for this prediction market`
 

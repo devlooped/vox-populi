@@ -9,6 +9,44 @@ import vox_populi  # noqa: E402
 
 
 class VoxPopuliTests(unittest.TestCase):
+    def test_parser_defaults_to_unbounded_bounds(self) -> None:
+        args = vox_populi.build_parser().parse_args(["test-event"])
+        self.assertIsNone(args.min_usd)
+        self.assertIsNone(args.max_usd)
+
+    def test_filter_wallets_allows_one_sided_or_unbounded_ranges(self) -> None:
+        positions = [
+            {"proxyWallet": "0xa", "currentValue": 5},
+            {"proxyWallet": "0xb", "currentValue": 25},
+            {"proxyWallet": "0xc", "currentValue": 500},
+        ]
+
+        unbounded = vox_populi.filter_wallets(
+            positions=positions,
+            min_usd=None,
+            max_usd=None,
+            outcome_name="Candidate",
+            side="Yes",
+        )
+        at_least_25 = vox_populi.filter_wallets(
+            positions=positions,
+            min_usd=25,
+            max_usd=None,
+            outcome_name="Candidate",
+            side="Yes",
+        )
+        up_to_25 = vox_populi.filter_wallets(
+            positions=positions,
+            min_usd=None,
+            max_usd=25,
+            outcome_name="Candidate",
+            side="Yes",
+        )
+
+        self.assertEqual(unbounded, {"0xa", "0xb", "0xc"})
+        self.assertEqual(at_least_25, {"0xb", "0xc"})
+        self.assertEqual(up_to_25, {"0xa", "0xb"})
+
     def test_filter_wallets_uses_largest_position_per_wallet(self) -> None:
         positions = [
             {"proxyWallet": "0xa", "currentValue": 50},
@@ -61,6 +99,39 @@ class VoxPopuliTests(unittest.TestCase):
         self.assertEqual(outcome["no_voters"], 2)
         self.assertEqual(outcome["voters"], 2)
         self.assertEqual(outcome["unpopular_pct"], 100.0)
+
+    @patch("vox_populi.get_market_positions")
+    @patch("vox_populi.get_event")
+    def test_fetch_vox_populi_defaults_to_unbounded_filter(
+        self, mock_get_event, mock_get_market_positions
+    ) -> None:
+        mock_get_event.return_value = {
+            "title": "Test Event",
+            "markets": [
+                {
+                    "conditionId": "1",
+                    "groupItemTitle": "Outcome A",
+                    "outcomePrices": ["0.6", "0.4"],
+                }
+            ],
+        }
+        mock_get_market_positions.return_value = [
+            {"outcome": "Yes", "proxyWallet": "0x1", "currentValue": 20},
+            {"outcome": "Yes", "proxyWallet": "0x1", "currentValue": 200},
+            {"outcome": "Yes", "proxyWallet": "0x2", "currentValue": 30},
+            {"outcome": "No", "proxyWallet": "0x3", "currentValue": 5},
+            {"outcome": "No", "proxyWallet": "0x3", "currentValue": 40},
+            {"outcome": "No", "proxyWallet": "0x2", "currentValue": 12},
+        ]
+
+        result = vox_populi.fetch_vox_populi("test-event")
+
+        self.assertIsNone(result["filter_min_usd"])
+        self.assertIsNone(result["filter_max_usd"])
+        self.assertEqual(result["total_voters"], 3)
+        outcome = result["outcomes"][0]
+        self.assertEqual(outcome["yes_voters"], 2)
+        self.assertEqual(outcome["no_voters"], 2)
 
     @patch("vox_populi.get_market_positions")
     @patch("vox_populi.get_event")

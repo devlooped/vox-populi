@@ -39,7 +39,7 @@ It filters out whales by current position size and shows **unique qualifying vot
 
 You must not invent missing inputs when there are meaningful trade-offs.
 
-If the user has not provided a Polymarket event or URL, ask for it. If the user has not specified a wallet-size band, use the skill defaults of **$10 minimum** and **$100 maximum** unless they ask for a different range.
+If the user has not provided a Polymarket event or URL, ask for it. If the user has not specified a wallet-size band, run with **no min/max bounds** (unbounded) unless they ask for a range.
 
 If an ask/follow-up tool exists in the current environment, prefer that tool over free-form questions.
 
@@ -64,14 +64,26 @@ python "<skill-dir>/scripts/vox_populi.py" argentina-presidential-election-winne
 ```
 
 ```bash
+python "<skill-dir>/scripts/vox_populi.py" argentina-presidential-election-winner --min-usd 5
+```
+
+```bash
+python "<skill-dir>/scripts/vox_populi.py" argentina-presidential-election-winner --max-usd 500
+```
+
+```bash
+python "<skill-dir>/scripts/vox_populi.py" argentina-presidential-election-winner
+```
+
+```bash
 python "<skill-dir>/scripts/vox_populi.py" https://polymarket.com/event/argentina-presidential-election-winner --print-table
 ```
 
 Required input:
 
 - an event slug or full Polymarket event URL
-- `--min-usd` default minimum qualifying position size (default to **10**)
-- `--max-usd` default maximum qualifying position size (default to **100**)
+- optionally `--min-usd` for a lower bound
+- optionally `--max-usd` for an upper bound
 
 Optional input:
 
@@ -83,6 +95,7 @@ Important runtime behavior:
 - the script writes progress, warnings, and errors to **stderr**
 - the script prints the generated JSON file path to **stdout**
 - the JSON file is the source of truth for downstream analysis or custom rendering
+- for natural-language prompts like `5-200`, `5+`, or `<500`, the agent should parse the request and map it to `--min-usd` / `--max-usd` values, omitting either arg when that side is unbounded
 
 ## Returned JSON data
 
@@ -117,7 +130,7 @@ Field meanings:
 
 - `event_title`: display title from Polymarket
 - `event_slug`: normalized event slug used for the request
-- `filter_min_usd` / `filter_max_usd`: inclusive position-value filter used for qualifying voters
+- `filter_min_usd` / `filter_max_usd`: inclusive position-value filter used for qualifying voters (`null` when unbounded on that side)
 - `total_voters`: count of unique qualifying wallets across all active outcomes
 - `outcomes`: active outcomes with `popular_pct >= 1.0`, sorted by `popular_pct` descending
 - `timestamp`: ISO-8601 snapshot time

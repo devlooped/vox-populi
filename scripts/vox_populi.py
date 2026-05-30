@@ -136,11 +136,29 @@ def market_name(market: Dict[str, Any]) -> str:
     return question.removeprefix("Will ").removesuffix(" win?").strip()
 
 
-def validate_filter_range(min_usd: float, max_usd: float) -> None:
-    if min_usd < 0 or max_usd < 0:
+def validate_filter_range(min_usd: float | None, max_usd: float | None) -> None:
+    if (min_usd is not None and min_usd < 0) or (max_usd is not None and max_usd < 0):
         raise ValueError("Filter range must be non-negative.")
-    if min_usd > max_usd:
+    if min_usd is not None and max_usd is not None and min_usd > max_usd:
         raise ValueError("Minimum USD filter cannot be greater than maximum USD filter.")
+
+
+def in_filter_range(value_usd: float, min_usd: float | None, max_usd: float | None) -> bool:
+    if min_usd is not None and value_usd < min_usd:
+        return False
+    if max_usd is not None and value_usd > max_usd:
+        return False
+    return True
+
+
+def format_filter_label(min_usd: float | None, max_usd: float | None) -> str:
+    if min_usd is None and max_usd is None:
+        return "unbounded"
+    if min_usd is None and max_usd is not None:
+        return f"<= ${max_usd:,} USD"
+    if min_usd is not None and max_usd is None:
+        return f">= ${min_usd:,} USD"
+    return f"${min_usd:,} - ${max_usd:,} USD"
 
 
 def get_output_file_path(event_slug: str, output_dir: str | None) -> Path:
@@ -165,8 +183,8 @@ def extract_wallet(position: Dict[str, Any]) -> str | None:
 
 def filter_wallets(
     positions: List[Dict[str, Any]],
-    min_usd: float,
-    max_usd: float,
+    min_usd: float | None,
+    max_usd: float | None,
     outcome_name: str,
     side: str,
 ) -> Set[str]:
@@ -187,7 +205,7 @@ def filter_wallets(
     wallets = {
         wallet
         for wallet, value_usd in top_position_by_wallet.items()
-        if min_usd <= value_usd <= max_usd
+        if in_filter_range(value_usd, min_usd, max_usd)
     }
 
     if skipped_wallets:
@@ -204,8 +222,8 @@ def filter_wallets(
 
 def fetch_vox_populi(
     event_slug_or_url: str,
-    min_usd: float = 10.0,
-    max_usd: float = 100.0,
+    min_usd: float | None = None,
+    max_usd: float | None = None,
 ) -> Dict[str, Any]:
     """Fetch event data and calculate popular vote with Yes/No split."""
     event_slug = normalize_event_slug(event_slug_or_url)
@@ -302,8 +320,8 @@ def render_cli_table(data: Dict[str, Any]) -> str:
         "",
         f"EVENT: {data['event_title']}",
         (
-            f"FILTER: Position size ${data['filter_min_usd']:,} - "
-            f"${data['filter_max_usd']:,} USD | Total qualifying voters: "
+            f"FILTER: Position size {format_filter_label(data['filter_min_usd'], data['filter_max_usd'])} "
+            f"| Total qualifying voters: "
             f"{data['total_voters']:,}"
         ),
         "",
@@ -347,14 +365,14 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--min-usd",
         type=float,
-        default=10.0,
-        help="Minimum position value USD filter. Default: 10",
+        default=None,
+        help="Minimum position value USD filter. Omit for no lower bound.",
     )
     parser.add_argument(
         "--max-usd",
         type=float,
-        default=100.0,
-        help="Maximum position value USD filter. Default: 100",
+        default=None,
+        help="Maximum position value USD filter. Omit for no upper bound.",
     )
     parser.add_argument(
         "--output",
