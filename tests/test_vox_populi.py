@@ -222,6 +222,42 @@ class VoxPopuliTests(unittest.TestCase):
         self.assertEqual(len(result["outcomes"]), 1)
         self.assertEqual(result["outcomes"][0]["name"], "Outcome B")
 
+    @patch("vox_populi.get_market_positions")
+    @patch("vox_populi.get_event")
+    def test_fetch_vox_populi_excludes_zero_market_yes_price_outcomes(
+        self, mock_get_event, mock_get_market_positions
+    ) -> None:
+        mock_get_event.return_value = {
+            "title": "Test Event",
+            "markets": [
+                {
+                    "conditionId": "1",
+                    "groupItemTitle": "Expired Outcome",
+                    "outcomePrices": ["0.0", "1.0"],
+                },
+                {
+                    "conditionId": "2",
+                    "groupItemTitle": "Live Outcome",
+                    "outcomePrices": ["0.4", "0.6"],
+                },
+            ],
+        }
+        mock_get_market_positions.side_effect = [
+            [
+                {"outcome": "Yes", "proxyWallet": "0x1", "currentValue": 20},
+                {"outcome": "No", "proxyWallet": "0x2", "currentValue": 20},
+            ],
+            [
+                {"outcome": "Yes", "proxyWallet": "0x3", "currentValue": 20},
+                {"outcome": "No", "proxyWallet": "0x4", "currentValue": 20},
+            ],
+        ]
+
+        result = vox_populi.fetch_vox_populi("test-event", min_usd=10, max_usd=100)
+
+        self.assertEqual(len(result["outcomes"]), 1)
+        self.assertEqual(result["outcomes"][0]["name"], "Live Outcome")
+
     def test_render_table_contains_unpopular_column(self) -> None:
         data = {
             "event_title": "Event",

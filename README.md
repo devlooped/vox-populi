@@ -109,6 +109,7 @@ These tend to work well:
 - If your prompt is ambiguous, the agent may ask you which market you mean.
 - POP % is distributed across Yes votes and UNPOP % is distributed across No votes, so each column sums to approximately 100%.
 - Outcomes with `POP % < 1.0` are excluded from the final ranking.
+- Outcomes with `MKT YES = 0.0%` are excluded from the final ranking.
 
 ## For developers
 
