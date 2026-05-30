@@ -97,6 +97,7 @@ These tend to work well:
 - `vox populi <market name>`
 - `use vox populi on <polymarket url>`
 - `run vox populi with min $25 max $250`
+- `vox populi <market name> 25-250`
 - `compare vox populi support with the market odds`
 - `summarize retail sentiment for this prediction market`
 
