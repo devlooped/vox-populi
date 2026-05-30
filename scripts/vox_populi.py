@@ -169,20 +169,25 @@ def filter_wallets(
     outcome_name: str,
     side: str,
 ) -> Set[str]:
-    wallets: Set[str] = set()
+    top_position_by_wallet: Dict[str, float] = {}
     skipped_wallets = 0
 
     for holder in positions:
-        value_usd = float(holder.get("currentValue", 0) or 0)
-        if not (min_usd <= value_usd <= max_usd):
-            continue
-
         wallet = extract_wallet(holder)
         if wallet is None:
             skipped_wallets += 1
             continue
 
-        wallets.add(wallet)
+        value_usd = float(holder.get("currentValue", 0) or 0)
+        current_top = top_position_by_wallet.get(wallet)
+        if current_top is None or value_usd > current_top:
+            top_position_by_wallet[wallet] = value_usd
+
+    wallets = {
+        wallet
+        for wallet, value_usd in top_position_by_wallet.items()
+        if min_usd <= value_usd <= max_usd
+    }
 
     if skipped_wallets:
         print(
@@ -246,8 +251,10 @@ def fetch_vox_populi(
     for outcome in outcomes_data:
         if total_voters > 0:
             outcome["popular_pct"] = round((outcome["voters"] / total_voters) * 100, 1)
+            outcome["unpopular_pct"] = round((outcome["no_voters"] / total_voters) * 100, 1)
         else:
             outcome["popular_pct"] = 0.0
+            outcome["unpopular_pct"] = 0.0
 
         if outcome["voters"] > 0:
             outcome["yes_pct"] = round((outcome["yes_voters"] / outcome["voters"]) * 100, 1)
@@ -283,16 +290,17 @@ def render_cli_table(data: Dict[str, Any]) -> str:
         "",
         (
             f"{'RANK':<5} | {'OUTCOME':<22} | {'POP %':>7} | {'VOTERS':>7} | "
-            f"{'YES %':>6} | {'NO %':>6} | {'MKT YES':>7}"
+            f"{'YES %':>6} | {'UNPOP %':>8} | {'NO %':>6} | {'MKT YES':>7}"
         ),
-        "-" * 78,
+        "-" * 89,
     ]
 
     for index, outcome in enumerate(data["outcomes"], 1):
         lines.append(
             f"{index:<5} | {outcome['name']:<22} | "
             f"{outcome['popular_pct']:>6.1f}% | {outcome['voters']:>7,} | "
-            f"{outcome['yes_pct']:>5.1f}% | {outcome['no_pct']:>5.1f}% | "
+            f"{outcome['yes_pct']:>5.1f}% | {outcome['unpopular_pct']:>7.1f}% | "
+            f"{outcome['no_pct']:>5.1f}% | "
             f"{outcome['yes_price']:>6.1f}%"
         )
 
