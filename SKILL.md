@@ -132,7 +132,7 @@ Field meanings:
 - `event_slug`: normalized event slug used for the request
 - `filter_min_usd` / `filter_max_usd`: inclusive position-value filter used for qualifying voters (`null` when unbounded on that side)
 - `total_voters`: count of unique qualifying wallets across all active outcomes
-- `outcomes`: active outcomes with `popular_pct >= 1.0`, sorted by `popular_pct` descending
+- `outcomes`: active outcomes with `popular_pct >= 1.0` and `yes_price > 0`, sorted by `popular_pct` descending
 - `timestamp`: ISO-8601 snapshot time
 
 Each `outcomes[]` item contains:

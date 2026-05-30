@@ -299,7 +299,11 @@ def fetch_vox_populi(
     active_outcomes = [
         outcome
         for outcome in outcomes_data
-        if outcome["voters"] > 0 and outcome["popular_pct"] >= MIN_POPULAR_PCT_TO_DISPLAY
+        if (
+            outcome["voters"] > 0
+            and outcome["popular_pct"] >= MIN_POPULAR_PCT_TO_DISPLAY
+            and outcome["yes_price"] > 0
+        )
     ]
     active_outcomes.sort(key=lambda item: item["popular_pct"], reverse=True)
 
