@@ -247,18 +247,32 @@ def fetch_vox_populi(
         )
 
     total_voters = len(all_voters)
+    total_yes_votes = sum(outcome["yes_voters"] for outcome in outcomes_data)
+    total_no_votes = sum(outcome["no_voters"] for outcome in outcomes_data)
 
     for outcome in outcomes_data:
-        if total_voters > 0:
-            outcome["popular_pct"] = round((outcome["voters"] / total_voters) * 100, 1)
-            outcome["unpopular_pct"] = round((outcome["no_voters"] / total_voters) * 100, 1)
+        if total_yes_votes > 0:
+            outcome["popular_pct"] = round(
+                (outcome["yes_voters"] / total_yes_votes) * 100, 1
+            )
         else:
             outcome["popular_pct"] = 0.0
+
+        if total_no_votes > 0:
+            outcome["unpopular_pct"] = round(
+                (outcome["no_voters"] / total_no_votes) * 100, 1
+            )
+        else:
             outcome["unpopular_pct"] = 0.0
 
-        if outcome["voters"] > 0:
-            outcome["yes_pct"] = round((outcome["yes_voters"] / outcome["voters"]) * 100, 1)
-            outcome["no_pct"] = round((outcome["no_voters"] / outcome["voters"]) * 100, 1)
+        outcome_vote_count = outcome["yes_voters"] + outcome["no_voters"]
+        if outcome_vote_count > 0:
+            outcome["yes_pct"] = round(
+                (outcome["yes_voters"] / outcome_vote_count) * 100, 1
+            )
+            outcome["no_pct"] = round(
+                (outcome["no_voters"] / outcome_vote_count) * 100, 1
+            )
         else:
             outcome["yes_pct"] = 0.0
             outcome["no_pct"] = 0.0
@@ -289,19 +303,19 @@ def render_cli_table(data: Dict[str, Any]) -> str:
         ),
         "",
         (
-            f"{'RANK':<5} | {'OUTCOME':<22} | {'POP %':>7} | {'VOTERS':>7} | "
-            f"{'YES %':>6} | {'UNPOP %':>8} | {'NO %':>6} | {'MKT YES':>7}"
+            f"{'RANK':<5} | {'OUTCOME':<22} | {'MKT YES':>7} | {'POP %':>7} | "
+            f"{'VOTES':>7} | {'YES %':>6} | {'UNPOP %':>8} | {'VOTES':>7} | {'NO %':>6}"
         ),
-        "-" * 89,
+        "-" * 101,
     ]
 
     for index, outcome in enumerate(data["outcomes"], 1):
         lines.append(
             f"{index:<5} | {outcome['name']:<22} | "
-            f"{outcome['popular_pct']:>6.1f}% | {outcome['voters']:>7,} | "
-            f"{outcome['yes_pct']:>5.1f}% | {outcome['unpopular_pct']:>7.1f}% | "
-            f"{outcome['no_pct']:>5.1f}% | "
-            f"{outcome['yes_price']:>6.1f}%"
+            f"{outcome['yes_price']:>6.1f}% | {outcome['popular_pct']:>6.1f}% | "
+            f"{outcome['yes_voters']:>7,} | {outcome['yes_pct']:>5.1f}% | "
+            f"{outcome['unpopular_pct']:>7.1f}% | {outcome['no_voters']:>7,} | "
+            f"{outcome['no_pct']:>5.1f}%"
         )
 
     lines.extend(

@@ -62,6 +62,49 @@ class VoxPopuliTests(unittest.TestCase):
         self.assertEqual(outcome["voters"], 2)
         self.assertEqual(outcome["unpopular_pct"], 100.0)
 
+    @patch("vox_populi.get_market_positions")
+    @patch("vox_populi.get_event")
+    def test_fetch_vox_populi_popular_and_unpopular_sum_to_100(
+        self, mock_get_event, mock_get_market_positions
+    ) -> None:
+        mock_get_event.return_value = {
+            "title": "Test Event",
+            "markets": [
+                {
+                    "conditionId": "1",
+                    "groupItemTitle": "Outcome A",
+                    "outcomePrices": ["0.6", "0.4"],
+                },
+                {
+                    "conditionId": "2",
+                    "groupItemTitle": "Outcome B",
+                    "outcomePrices": ["0.3", "0.7"],
+                },
+            ],
+        }
+        mock_get_market_positions.side_effect = [
+            [
+                {"outcome": "Yes", "proxyWallet": "0x1", "currentValue": 20},
+                {"outcome": "Yes", "proxyWallet": "0x2", "currentValue": 30},
+                {"outcome": "No", "proxyWallet": "0x3", "currentValue": 40},
+            ],
+            [
+                {"outcome": "Yes", "proxyWallet": "0x4", "currentValue": 25},
+                {"outcome": "No", "proxyWallet": "0x5", "currentValue": 30},
+                {"outcome": "No", "proxyWallet": "0x6", "currentValue": 35},
+            ],
+        ]
+
+        result = vox_populi.fetch_vox_populi("test-event", min_usd=10, max_usd=100)
+
+        popular_total = round(sum(outcome["popular_pct"] for outcome in result["outcomes"]), 1)
+        unpopular_total = round(
+            sum(outcome["unpopular_pct"] for outcome in result["outcomes"]), 1
+        )
+
+        self.assertEqual(popular_total, 100.0)
+        self.assertEqual(unpopular_total, 100.0)
+
     def test_render_table_contains_unpopular_column(self) -> None:
         data = {
             "event_title": "Event",
@@ -74,9 +117,11 @@ class VoxPopuliTests(unittest.TestCase):
                     "name": "Outcome A",
                     "popular_pct": 100.0,
                     "voters": 2,
-                    "yes_pct": 50.0,
-                    "unpopular_pct": 100.0,
-                    "no_pct": 100.0,
+                    "yes_voters": 2,
+                    "no_voters": 0,
+                    "yes_pct": 100.0,
+                    "unpopular_pct": 0.0,
+                    "no_pct": 0.0,
                     "yes_price": 60.0,
                 }
             ],
@@ -85,6 +130,8 @@ class VoxPopuliTests(unittest.TestCase):
         table = vox_populi.render_cli_table(data)
 
         self.assertIn("UNPOP %", table)
+        self.assertIn("MKT YES", table)
+        self.assertLess(table.find("MKT YES"), table.find("POP %"))
         self.assertIn("100.0%", table)
 
 

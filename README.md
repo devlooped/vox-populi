@@ -68,10 +68,10 @@ an agent can respond with something like:
 EVENT: SpaceX IPO in 2026?
 FILTER: Position size $10 - $100 USD | Total qualifying voters: 1,284
 
-RANK  | OUTCOME                |   POP % |  VOTERS |  YES % | UNPOP % |   NO %
------------------------------------------------------------------------------
-1     | Yes                    |   61.4% |     788 |   73.2% |   26.6% |  28.0%
-2     | No                     |   46.8% |     601 |   39.3% |   30.0% |  63.9%
+RANK  | OUTCOME                | MKT YES |   POP % |  VOTES |  YES % | UNPOP % |  VOTES |   NO %
+----------------------------------------------------------------------------------------------------
+1     | Yes                    |   61.4% |   61.4% |     788 |   73.2% |   26.6% |     341 |  28.0%
+2     | No                     |   46.8% |   38.6% |     496 |   39.3% |   73.4% |     942 |  63.9%
 
 Last updated: 2026-05-30 03:20:11
 ```
@@ -104,7 +104,7 @@ These tend to work well:
 
 - Results are based on live public Polymarket APIs.
 - If your prompt is ambiguous, the agent may ask you which market you mean.
-- The same wallet can appear across multiple outcomes, so popular-share percentages may add up to more than 100%.
+- POP % is distributed across Yes votes and UNPOP % is distributed across No votes, so each column sums to approximately 100%.
 
 ## For developers
 
