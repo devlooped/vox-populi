@@ -105,6 +105,7 @@ These tend to work well:
 - Results are based on live public Polymarket APIs.
 - If your prompt is ambiguous, the agent may ask you which market you mean.
 - POP % is distributed across Yes votes and UNPOP % is distributed across No votes, so each column sums to approximately 100%.
+- Outcomes with `POP % < 1.0` are excluded from the final ranking.
 
 ## For developers
 

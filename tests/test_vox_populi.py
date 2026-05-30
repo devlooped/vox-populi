@@ -105,6 +105,52 @@ class VoxPopuliTests(unittest.TestCase):
         self.assertEqual(popular_total, 100.0)
         self.assertEqual(unpopular_total, 100.0)
 
+    @patch("vox_populi.get_market_positions")
+    @patch("vox_populi.get_event")
+    def test_fetch_vox_populi_excludes_outcomes_below_one_pop_pct(
+        self, mock_get_event, mock_get_market_positions
+    ) -> None:
+        mock_get_event.return_value = {
+            "title": "Test Event",
+            "markets": [
+                {
+                    "conditionId": "1",
+                    "groupItemTitle": "Outcome A",
+                    "outcomePrices": ["0.6", "0.4"],
+                },
+                {
+                    "conditionId": "2",
+                    "groupItemTitle": "Outcome B",
+                    "outcomePrices": ["0.3", "0.7"],
+                },
+            ],
+        }
+        mock_get_market_positions.side_effect = [
+            [{"outcome": "Yes", "proxyWallet": "0xyes-a", "currentValue": 20}]
+            + [
+                {
+                    "outcome": "No",
+                    "proxyWallet": f"0xno-a-{wallet}",
+                    "currentValue": 20,
+                }
+                for wallet in range(200)
+            ],
+            [{"outcome": "No", "proxyWallet": "0xno-b", "currentValue": 20}]
+            + [
+                {
+                    "outcome": "Yes",
+                    "proxyWallet": f"0xyes-b-{wallet}",
+                    "currentValue": 20,
+                }
+                for wallet in range(199)
+            ],
+        ]
+
+        result = vox_populi.fetch_vox_populi("test-event", min_usd=10, max_usd=100)
+
+        self.assertEqual(len(result["outcomes"]), 1)
+        self.assertEqual(result["outcomes"][0]["name"], "Outcome B")
+
     def test_render_table_contains_unpopular_column(self) -> None:
         data = {
             "event_title": "Event",

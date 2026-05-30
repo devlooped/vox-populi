@@ -28,6 +28,7 @@ HEADERS = {
     "Accept": "application/json",
     "Referer": "https://polymarket.com/",
 }
+MIN_POPULAR_PCT_TO_DISPLAY = 1.0
 
 
 def normalize_event_slug(value: str) -> str:
@@ -277,7 +278,11 @@ def fetch_vox_populi(
             outcome["yes_pct"] = 0.0
             outcome["no_pct"] = 0.0
 
-    active_outcomes = [outcome for outcome in outcomes_data if outcome["voters"] > 0]
+    active_outcomes = [
+        outcome
+        for outcome in outcomes_data
+        if outcome["voters"] > 0 and outcome["popular_pct"] >= MIN_POPULAR_PCT_TO_DISPLAY
+    ]
     active_outcomes.sort(key=lambda item: item["popular_pct"], reverse=True)
 
     return {
