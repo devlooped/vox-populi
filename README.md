@@ -68,10 +68,10 @@ an agent can respond with something like:
 EVENT: SpaceX IPO in 2026?
 FILTER: Position size $10 - $100 USD | Total qualifying voters: 1,284
 
-RANK  | OUTCOME                | MKT YES |   POP % |  VOTES |  YES % | UNPOP % |  VOTES |   NO %
+RANK  | OUTCOME                | MKT YES |   POP   |  VOTES  |    YES  |   UNPOP | VOTES |   NO
 ----------------------------------------------------------------------------------------------------
-1     | Yes                    |   61.4% |   61.4% |     788 |   73.2% |   26.6% |     341 |  28.0%
-2     | No                     |   46.8% |   38.6% |     496 |   39.3% |   73.4% |     942 |  63.9%
+1     | Yes                    |   61.4% |   61.4% |     788 |   73.2% |   26.6% |   341 |  28.0%
+2     | No                     |   46.8% |   38.6% |     496 |   39.3% |   73.4% |   942 |  63.9%
 
 Last updated: 2026-05-30 03:20:11
 ```

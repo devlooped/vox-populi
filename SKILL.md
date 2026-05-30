@@ -142,12 +142,13 @@ Columns:
 
 - `RANK`
 - `OUTCOME`
-- `POP %`
-- `VOTERS`
-- `YES %`
-- `UNPOP %`
-- `NO %`
 - `MKT YES`
+- `POP`
+- `VOTES`
+- `YES`
+- `UNPOP`
+- `VOTES`
+- `NO`
 
 ## Footnote
 
