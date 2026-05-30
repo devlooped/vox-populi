@@ -148,3 +148,7 @@ Columns:
 - `UNPOP %`
 - `NO %`
 - `MKT YES`
+
+## Footnote
+
+When responding to the user, the path to the JSON file should be mentioned last as a dim footnote after any human-readable table or summary, so that agents can choose to read the file directly for structured data or parse the summary for a quick follow-up answer.
