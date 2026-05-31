@@ -103,10 +103,10 @@ The script prints the path to a JSON file with this top-level shape:
 
 ```json
 {
-  "event_title": "Argentina Presidential Election Winner",
-  "event_slug": "argentina-presidential-election-winner",
-  "filter_min_usd": 10.0,
-  "filter_max_usd": 100.0,
+  "title": "Argentina Presidential Election Winner",
+  "slug": "argentina-presidential-election-winner",
+  "min_usd": null,
+  "max_usd": null,
   "total_voters": 84,
   "outcomes": [
     {
@@ -128,9 +128,9 @@ The script prints the path to a JSON file with this top-level shape:
 
 Field meanings:
 
-- `event_title`: display title from Polymarket
-- `event_slug`: normalized event slug used for the request
-- `filter_min_usd` / `filter_max_usd`: inclusive position-value filter used for qualifying voters (`null` when unbounded on that side)
+- `title`: display title from Polymarket
+- `slug`: normalized event slug used for the request
+- `min_usd` / `max_usd`: inclusive position-value filter used for qualifying voters (`null` when unbounded on that side)
 - `total_voters`: count of unique qualifying wallets across all active outcomes
 - `outcomes`: active outcomes with `popular_pct >= 1.0` and `yes_price > 0`, sorted by `popular_pct` descending
 - `timestamp`: ISO-8601 snapshot time

@@ -62,11 +62,11 @@ For a prompt like:
 vox populi SpaceX IPO
 ```
 
-an agent can respond with something like:
+an agent can respond with something like this when no wallet-size bounds were specified:
 
 ```text
 EVENT: SpaceX IPO in 2026?
-FILTER: Position size $10 - $100 USD | Total qualifying voters: 1,284
+FILTER: Position size unbounded | Total qualifying voters: 1,284
 
 RANK  | OUTCOME                | MKT YES |   POP   |  VOTES  |    YES  |   UNPOP | VOTES |   NO
 ----------------------------------------------------------------------------------------------------
@@ -77,6 +77,8 @@ Last updated: 2026-05-30 03:20:11
 ```
 
 The exact market title, outcomes, and counts depend on live Polymarket data.
+
+If you want a bounded wallet-size band, specify it in the prompt. Otherwise the run is unbounded.
 
 ## What the agent is doing for you
 
@@ -89,6 +91,8 @@ When invoked, the skill:
 - reports **popular support** plus the **Yes/No split** for each outcome
 
 This makes it useful for prompts about **retail sentiment**, **crowd conviction**, **prediction markets**, **whale filtering**, and **people-vs-money divergence**.
+
+The structured JSON uses concise top-level keys: `title`, `slug`, `min_usd`, `max_usd`, `total_voters`, `outcomes`, and `timestamp`.
 
 ## Good prompt patterns
 
