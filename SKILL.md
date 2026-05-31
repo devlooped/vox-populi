@@ -1,6 +1,6 @@
 ---
 name: vox-populi
-description: Generate a one-person-one-vote view of any Polymarket multi-outcome event, filtering wallets by position size and reporting Yes/No voter splits per outcome.
+description: Generate a one-person-one-vote view of any Polymarket multi-outcome event, optionally filtering wallets by position size and reporting Yes/No voter splits per outcome.
 version: 1.0.0
 license: MIT
 author: Daniel Cazzulino
@@ -24,9 +24,9 @@ keywords:
 
 # Vox Populi Skill
 
-**Vox Populi** creates a **retail / popular vote** view of Polymarket events.
+**Vox Populi** creates a **popular vote** view of Polymarket events.
 
-It filters out whales by current position size and shows **unique qualifying voters** with a **Yes % / No %** split for each active outcome.
+It optimally filters out whales by current position size and shows **unique qualifying voters** with a **Yes % / No %** split for each active outcome.
 
 ## When to Use
 
