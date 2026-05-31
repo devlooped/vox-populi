@@ -126,8 +126,8 @@ class VoxPopuliTests(unittest.TestCase):
 
         result = vox_populi.fetch_vox_populi("test-event")
 
-        self.assertIsNone(result["filter_min_usd"])
-        self.assertIsNone(result["filter_max_usd"])
+        self.assertIsNone(result["min_usd"])
+        self.assertIsNone(result["max_usd"])
         self.assertEqual(result["total_voters"], 3)
         outcome = result["outcomes"][0]
         self.assertEqual(outcome["yes_voters"], 2)
@@ -260,9 +260,9 @@ class VoxPopuliTests(unittest.TestCase):
 
     def test_render_table_contains_unpopular_column(self) -> None:
         data = {
-            "event_title": "Event",
-            "filter_min_usd": 10.0,
-            "filter_max_usd": 100.0,
+            "title": "Event",
+            "min_usd": 10.0,
+            "max_usd": 100.0,
             "total_voters": 2,
             "timestamp": "2026-05-30T00:00:00",
             "outcomes": [

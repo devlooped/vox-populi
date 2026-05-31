@@ -308,10 +308,10 @@ def fetch_vox_populi(
     active_outcomes.sort(key=lambda item: item["popular_pct"], reverse=True)
 
     return {
-        "event_title": event.get("title", event_slug),
-        "event_slug": event_slug,
-        "filter_min_usd": min_usd,
-        "filter_max_usd": max_usd,
+        "title": event.get("title", event_slug),
+        "slug": event_slug,
+        "min_usd": min_usd,
+        "max_usd": max_usd,
         "total_voters": total_voters,
         "outcomes": active_outcomes,
         "timestamp": datetime.now().isoformat(),
@@ -322,9 +322,9 @@ def render_cli_table(data: Dict[str, Any]) -> str:
     """Render the CLI table with Yes/No split."""
     lines = [
         "",
-        f"EVENT: {data['event_title']}",
+        f"EVENT: {data['title']}",
         (
-            f"FILTER: Position size {format_filter_label(data['filter_min_usd'], data['filter_max_usd'])} "
+            f"FILTER: Position size {format_filter_label(data['min_usd'], data['max_usd'])} "
             f"| Total qualifying voters: "
             f"{data['total_voters']:,}"
         ),
@@ -402,7 +402,7 @@ def main() -> None:
             min_usd=args.min_usd,
             max_usd=args.max_usd,
         )
-        output_file = get_output_file_path(data["event_slug"], args.output)
+        output_file = get_output_file_path(data["slug"], args.output)
         write_json(output_file, data)
         if args.print_table:
             print_cli_table(data)
