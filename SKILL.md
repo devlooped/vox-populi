@@ -26,7 +26,7 @@ keywords:
 
 **Vox Populi** creates a **popular vote** view of Polymarket events.
 
-It optimally filters out whales by current position size and shows **unique qualifying voters** with a **Yes % / No %** split for each active outcome.
+It optionally filters out whales by current position size and shows **unique qualifying voters** with a **Yes % / No %** split for each active outcome.
 
 ## When to Use
 
