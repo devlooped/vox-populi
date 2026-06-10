@@ -85,10 +85,11 @@ If you want a bounded wallet-size band, specify it in the prompt. Otherwise the 
 When invoked, the skill:
 
 - resolves the requested Polymarket event from a slug or URL
-- filters wallets by current position size, defaulting to **unbounded** when no limits are provided
+- for finished events (detected when one option is ~100% and others ~0%), searches the web for the event date and snapshots positions on the day *prior* by analyzing on-chain data (trades + CTF transfers)
+- filters wallets by position size (at the relevant time), defaulting to **unbounded** when no limits are provided
 - counts unique qualifying wallets instead of dollar exposure
-- in Yes and No independently, keeps only each wallet's largest current position
-- reports **popular support** plus the **Yes/No split** for each outcome
+- in Yes and No independently, keeps only each wallet's largest position
+- reports **popular support** plus the **Yes/No split** for each outcome (market prices as-of cutoff for finished events)
 
 This makes it useful for prompts about **retail sentiment**, **crowd conviction**, **prediction markets**, **whale filtering**, and **people-vs-money divergence**.
 

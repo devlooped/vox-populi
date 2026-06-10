@@ -222,11 +222,13 @@ class VoxPopuliTests(unittest.TestCase):
         self.assertEqual(len(result["outcomes"]), 1)
         self.assertEqual(result["outcomes"][0]["name"], "Outcome B")
 
+    @patch("vox_populi.determine_prior_event_date")
     @patch("vox_populi.get_market_positions")
     @patch("vox_populi.get_event")
     def test_fetch_vox_populi_excludes_zero_market_yes_price_outcomes(
-        self, mock_get_event, mock_get_market_positions
+        self, mock_get_event, mock_get_market_positions, mock_determine_prior
     ) -> None:
+        mock_determine_prior.return_value = None
         mock_get_event.return_value = {
             "title": "Test Event",
             "markets": [
