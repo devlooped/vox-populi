@@ -135,7 +135,7 @@ class VoxPopuliTests(unittest.TestCase):
 
     @patch("vox_populi.get_market_positions")
     @patch("vox_populi.get_event")
-    def test_fetch_vox_populi_popular_and_unpopular_sum_to_100(
+    def test_fetch_vox_populi_popular_and_unpopular_are_fractions_of_total_voters(
         self, mock_get_event, mock_get_market_positions
     ) -> None:
         mock_get_event.return_value = {
@@ -168,13 +168,14 @@ class VoxPopuliTests(unittest.TestCase):
 
         result = vox_populi.fetch_vox_populi("test-event", min_usd=10, max_usd=100)
 
-        popular_total = round(sum(outcome["popular_pct"] for outcome in result["outcomes"]), 1)
-        unpopular_total = round(
-            sum(outcome["unpopular_pct"] for outcome in result["outcomes"]), 1
-        )
-
-        self.assertEqual(popular_total, 100.0)
-        self.assertEqual(unpopular_total, 100.0)
+        self.assertEqual(result["total_voters"], 6)
+        # popular/unpopular are now % of total_voters (can sum < or > 100 if wallets hold multiple Yes/No)
+        outcome_a = next(o for o in result["outcomes"] if o["name"] == "Outcome A")
+        outcome_b = next(o for o in result["outcomes"] if o["name"] == "Outcome B")
+        self.assertEqual(outcome_a["popular_pct"], 33.3)
+        self.assertEqual(outcome_a["unpopular_pct"], 16.7)
+        self.assertEqual(outcome_b["popular_pct"], 16.7)
+        self.assertEqual(outcome_b["unpopular_pct"], 33.3)
 
     @patch("vox_populi.get_market_positions")
     @patch("vox_populi.get_event")

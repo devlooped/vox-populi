@@ -13,6 +13,7 @@ import tempfile
 import time
 from datetime import datetime
 from pathlib import Path
+from collections import defaultdict
 from typing import Any, Dict, List, Set
 from urllib.parse import urlparse
 
@@ -230,13 +231,26 @@ def fetch_vox_populi(
     print(f"Fetching event: {event_slug}...", file=sys.stderr)
     event = get_event(event_slug)
 
-    outcomes_data: List[Dict[str, Any]] = []
-    all_voters: Set[str] = set()
+    # Collect raw positions per wallet per outcome per side (taking max value per wallet+outcome+side
+    # in case the API returns multiple rows for the same thing). We do *not* apply the min/max filter yet.
+    outcome_info: Dict[str, Dict[str, Any]] = {}
+    wallet_yes: Dict[str, Dict[str, float]] = defaultdict(dict)  # wallet -> {outcome_name: max currentValue for Yes on it}
+    wallet_no: Dict[str, Dict[str, float]] = defaultdict(dict)
+    skipped_positions = 0
+
     for market in event.get("markets", []):
         condition_id = market.get("conditionId")
         if not condition_id:
             continue
         outcome_name = market_name(market)
+
+        # Only consider markets that have real trading activity.
+        # The Gamma API often returns many placeholder/stub markets ("Person B", "Other", etc.)
+        # with volume=0 and liquidity=0 that do not appear on the public event page.
+        # These stubs can still have ghost 0-value records in the positions API.
+        volume = market.get("volumeNum") or market.get("volume")
+        if volume is not None and float(volume) <= 0:
+            continue
 
         outcome_prices = parse_json_list(market.get("outcomePrices"), ["0.5", "0.5"])
         yes_price = float(outcome_prices[0]) if len(outcome_prices) > 0 else 0.5
@@ -244,42 +258,94 @@ def fetch_vox_populi(
 
         print(f"  Processing: {outcome_name}...", file=sys.stderr)
 
+        outcome_info[outcome_name] = {
+            "yes_price": round(yes_price * 100, 1),
+            "no_price": round(no_price * 100, 1),
+        }
+
         positions = get_market_positions(str(condition_id))
-        yes_holders = [position for position in positions if position.get("outcome") == "Yes"]
-        no_holders = [position for position in positions if position.get("outcome") == "No"]
+        for pos in positions:
+            wallet = extract_wallet(pos)
+            if wallet is None:
+                skipped_positions += 1
+                continue
+            side = pos.get("outcome")
+            value_usd = float(pos.get("currentValue", 0) or 0)
 
-        yes_voters = filter_wallets(yes_holders, min_usd, max_usd, outcome_name, "Yes")
-        no_voters = filter_wallets(no_holders, min_usd, max_usd, outcome_name, "No")
+            if value_usd == 0:
+                # Ignore zero present-value (ghost/legacy/resolved) records.
+                # They should not contribute to "top position" for popular vote.
+                continue
 
-        combined_voters = yes_voters.union(no_voters)
-        all_voters.update(combined_voters)
+            if side == "Yes":
+                d = wallet_yes[wallet]
+                if outcome_name not in d or value_usd > d[outcome_name]:
+                    d[outcome_name] = value_usd
+            elif side == "No":
+                d = wallet_no[wallet]
+                if outcome_name not in d or value_usd > d[outcome_name]:
+                    d[outcome_name] = value_usd
 
+    if skipped_positions:
+        print(
+            f"  Warning: skipped {skipped_positions} position(s) without a proxyWallet.",
+            file=sys.stderr,
+        )
+
+    # Global per-wallet top position (by currentValue) across *all* outcomes for the Yes side,
+    # and independently for the No side. Apply the min/max filter to the *top* value only.
+    # This guarantees each wallet contributes at most one Yes vote and at most one No vote
+    # to the entire event (awarded to the outcome of their highest-value position on that side).
+    yes_for_outcome: Dict[str, Set[str]] = defaultdict(set)
+    no_for_outcome: Dict[str, Set[str]] = defaultdict(set)
+    qualifying_wallets: Set[str] = set()
+
+    for wallet, out_to_val in wallet_yes.items():
+        if not out_to_val:
+            continue
+        best_outcome, best_val = max(out_to_val.items(), key=lambda item: item[1])
+        if in_filter_range(best_val, min_usd, max_usd):
+            yes_for_outcome[best_outcome].add(wallet)
+            qualifying_wallets.add(wallet)
+
+    for wallet, out_to_val in wallet_no.items():
+        if not out_to_val:
+            continue
+        best_outcome, best_val = max(out_to_val.items(), key=lambda item: item[1])
+        if in_filter_range(best_val, min_usd, max_usd):
+            no_for_outcome[best_outcome].add(wallet)
+            qualifying_wallets.add(wallet)
+
+    total_voters = len(qualifying_wallets)
+
+    # Build per-outcome stats. "yes_voters" now means wallets for whom this outcome had their single
+    # highest-value Yes position (and it passed the filter). Same for no_voters.
+    outcomes_data: List[Dict[str, Any]] = []
+    for name, info in outcome_info.items():
+        y_set = yes_for_outcome.get(name, set())
+        n_set = no_for_outcome.get(name, set())
         outcomes_data.append(
             {
-                "name": outcome_name,
-                "voters": len(combined_voters),
-                "yes_voters": len(yes_voters),
-                "no_voters": len(no_voters),
-                "yes_price": round(yes_price * 100, 1),
-                "no_price": round(no_price * 100, 1),
+                "name": name,
+                "voters": len(y_set | n_set),
+                "yes_voters": len(y_set),
+                "no_voters": len(n_set),
+                "yes_price": info["yes_price"],
+                "no_price": info["no_price"],
             }
         )
 
-    total_voters = len(all_voters)
-    total_yes_votes = sum(outcome["yes_voters"] for outcome in outcomes_data)
-    total_no_votes = sum(outcome["no_voters"] for outcome in outcomes_data)
-
     for outcome in outcomes_data:
-        if total_yes_votes > 0:
+        if total_voters > 0:
             outcome["popular_pct"] = round(
-                (outcome["yes_voters"] / total_yes_votes) * 100, 1
+                (outcome["yes_voters"] / total_voters) * 100, 1
             )
         else:
             outcome["popular_pct"] = 0.0
 
-        if total_no_votes > 0:
+        if total_voters > 0:
             outcome["unpopular_pct"] = round(
-                (outcome["no_voters"] / total_no_votes) * 100, 1
+                (outcome["no_voters"] / total_voters) * 100, 1
             )
         else:
             outcome["unpopular_pct"] = 0.0

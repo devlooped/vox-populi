@@ -116,7 +116,7 @@ The script prints the path to a JSON file with this top-level shape:
       "no_voters": 11,
       "yes_price": 47.5,
       "no_price": 52.5,
-      "popular_pct": 66.7,
+      "popular_pct": 54.8,
       "yes_pct": 82.1,
       "unpopular_pct": 13.1,
       "no_pct": 19.6
@@ -141,11 +141,11 @@ Each `outcomes[]` item contains:
 - `voters`: unique qualifying wallets in either Yes or No for that outcome
 - `yes_voters` / `no_voters`: unique qualifying wallets per side
 - `yes_price` / `no_price`: current market prices in percent
-- `popular_pct`: share of total qualifying voters attributed to that outcome
-- `unpopular_pct`: share of total qualifying voters casting a No vote for that outcome
-- `yes_pct` / `no_pct`: split within that outcome's voter set
+- `popular_pct`: share of total qualifying voters whose single highest-value Yes position (by current USD value, after filters) is on that outcome
+- `unpopular_pct`: share of total qualifying voters whose single highest-value No position is on that outcome
+- `yes_pct` / `no_pct`: split within that outcome's voter set (based on top positions)
 
-`popular_pct` values can sum to more than **100%** because one wallet can qualify in multiple outcomes.
+A wallet contributes **at most one Yes vote** (awarded only to the outcome of its highest-value Yes position, if that value passes the min/max filter) and **at most one No vote** (to the outcome of its highest-value No position). As a result, `popular_pct` values across all outcomes sum to **at most 100%**, and `unpopular_pct` values likewise sum to at most 100%. A wallet may still contribute a Yes vote to one outcome and a No vote to a different outcome.
 
 ## Table rendering for the agent
 
